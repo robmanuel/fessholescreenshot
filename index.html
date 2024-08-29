@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tweet-Like Text Resizer</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #e6ecf0; /* Light Twitter-like background */
+            font-family: Helvetica, Arial, sans-serif; /* Global font to match Twitter */
+            flex-direction: column; /* Adjust layout to have button below container */
+        }
+
+        .container {
+            width: 800px;
+            height: 800px;
+            position: relative;
+            background-color: white; /* White background like a tweet */
+            border-radius: 15px; /* Rounded corners to mimic a tweet */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06); /* Subtle shadow */
+            padding: 20px; /* Padding inside the container */
+            box-sizing: border-box;
+            margin-bottom: 20px; /* Space between container and button */
+            overflow: hidden; /* Prevent content overflow */
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-right: 10px;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #14171a; /* Twitter-like dark text color */
+        }
+
+    textarea {
+            width: 100%;
+            height: calc(100% - 100px); /* Adjusted height to account for header and footer */
+            border: none; /* Remove default border */
+            resize: none;
+            overflow: hidden; /* Prevent text overflow */
+            padding: 0; /* No padding for textarea itself */
+            font-size: 20px;
+            line-height: 1.2;
+            box-sizing: border-box;
+            font-family: inherit; /* Inherit font from the body/container */
+            background: none; /* Transparent background */
+            outline: none; /* Remove focus outline */
+            color: #14171a; /* Twitter-like dark text color */
+            display: block;
+            spellcheck="false"; /* Disable spellcheck */
+            autocomplete="off"; /* Disable autocomplete */
+            autocorrect="off"; /* Disable autocorrect */
+            autocapitalize="off"; /* Disable autocapitalize */
+        }
+
+        .footer {
+            margin-top: 10px;
+            font-size: 25px;
+            color: #657786; /* Gray color for date and time */
+            display: flex;
+            justify-content: space-between;
+            width: 100%; /* Make the footer fill the container width */
+        }
+
+        .views {
+            font-weight: bold; /* Bold and black for views count */
+            color: #14171a;
+        }
+
+        .save-button,
+        .font-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #1da1f2; /* Twitter-like blue color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .save-button:hover,
+        .font-button:hover {
+            background-color: #1a91da; /* Darker blue on hover */
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="tweetContainer">
+        <div class="header">
+            <div class="logo">
+                <!-- Logo image link to simulate Twitter-like avatar -->
+                <img src="https://pbs.twimg.com/profile_images/1172580448662372353/SwJNqDQl_400x400.jpg" alt="Fesshole Logo">
+            </div>
+            <div class="username">Fesshole<br>@fesshole</div>
+        </div>
+        <textarea id="dynamicBox" placeholder="What's happening?" maxlength="280"></textarea> <!-- Placeholder and character limit to mimic tweet -->
+        <div class="footer" id="tweetFooter">
+            <!-- Footer will be dynamically filled by JavaScript -->
+        </div>
+    </div>
+    <!-- Buttons for font size adjustment and saving as PNG -->
+    <div>
+        <button class="font-button" id="increaseFont">+</button>
+        <button class="font-button" id="decreaseFont">-</button>
+        <button class="save-button" id="saveButton">Save as PNG</button>
+    </div>
+
+    <!-- Include html-to-image library from a CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.10.0/dist/html-to-image.min.js"></script>
+    <script>
+        const textarea = document.getElementById('dynamicBox');
+        const tweetFooter = document.getElementById('tweetFooter');
+        const saveButton = document.getElementById('saveButton');
+        const increaseFontButton = document.getElementById('increaseFont');
+        const decreaseFontButton = document.getElementById('decreaseFont');
+
+        // Function to dynamically resize text
+        textarea.addEventListener('input', function() {
+            resizeText();
+        });
+
+        function resizeText() {
+            const maxFontSize = 400; // Max font size to grow into
+            const minFontSize = 12; // Minimum font size for legibility
+            let fontSize = minFontSize;
+
+            // Increase font size until it either fills the box or reaches the maximum
+            textarea.style.fontSize = `${fontSize}px`;
+            while (textarea.scrollHeight <= textarea.clientHeight && fontSize < maxFontSize) {
+                fontSize += 1;
+                textarea.style.fontSize = `${fontSize}px`;
+            }
+
+            // Decrease font size if the text overflows the box
+            while (textarea.scrollHeight > textarea.clientHeight && fontSize > minFontSize) {
+                fontSize -= 1;
+                textarea.style.fontSize = `${fontSize}px`;
+            }
+        }
+
+        // Manual font size adjustment functions
+        increaseFontButton.addEventListener('click', function() {
+            let currentFontSize = parseInt(window.getComputedStyle(textarea).fontSize);
+            if (currentFontSize < 400) { // Ensure max font size does not exceed 400px
+                textarea.style.fontSize = `${currentFontSize + 1}px`;
+            }
+        });
+
+        decreaseFontButton.addEventListener('click', function() {
+            let currentFontSize = parseInt(window.getComputedStyle(textarea).fontSize);
+            if (currentFontSize > 12) { // Ensure min font size does not go below 12px
+                textarea.style.fontSize = `${currentFontSize - 1}px`;
+            }
+        });
+
+        // Function to generate random date and views
+        function generateFooterContent() {
+            const date = new Date();
+            const randomDaysAgo = Math.floor(Math.random() * 2) + 1; // 1 or 2 days ago
+            const randomHours = Math.floor(Math.random() * 24);
+            const randomMinutes = Math.floor(Math.random() * 60);
+            date.setDate(date.getDate() - randomDaysAgo);
+            date.setHours(randomHours, randomMinutes);
+
+            const formattedDate = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ' · ' + date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+            const views = Math.floor(Math.random() * (1999000 - 100000 + 1)) + 100000; // Random views between 100k and 1999k
+
+            return `<span>${formattedDate}</span> <span class="views">${views.toLocaleString()} Views</span>`;
+        }
+
+        // Set the footer content when the page loads
+        tweetFooter.innerHTML = generateFooterContent();
+
+        // Initial call to set the font size based on any pre-existing text in the textarea
+        resizeText();
+
+        // Function to save the .container as a PNG
+        saveButton.addEventListener('click', function() {
+            const tweetContainer = document.getElementById('tweetContainer');
+
+            htmlToImage.toPng(tweetContainer)
+                .then(function (dataUrl) {
+                    const link = document.createElement('a');
+                    const firstFiveWords = textarea.value.split(/\s+/).slice(0, 5).join('_') || 'tweet';
+                    link.download = `${firstFiveWords}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                })
+                .catch(function (error) {
+                    console.error('Oops, something went wrong!', error);
+                });
+        });
+    </script>
+</body>
+</html>
